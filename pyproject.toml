@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "voicebrief"
+version = "0.1.0"
+description = "Converts video / audio conversations to text and subsequently provides a summary into a managable report"
+authors = ["Iwan van der Kleijn <iwanvanderkleijn@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+openai = "^1.7.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
