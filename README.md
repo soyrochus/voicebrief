@@ -1,6 +1,10 @@
 # Voicebrief
 
-Converts video / audio conversations to text and subsequently provides a summary into a managable report.
+Converts video / audio conversations to text and subsequently provides a summary into a manageable report.
+
+
+![Voicebrief converts video / audio conversations to text ](images/voicebrief_small.png)
+
 
 ## Installation
 
@@ -40,7 +44,18 @@ The environment variables are loaded into the execution context of the applicati
 ```
 ## Usage
 
-TODO
+Usage of the tool:
+
+```bash
+Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a managable report.
+
+positional arguments:
+  path         Path to the audio file
+  destination  Optional destination directory (default: directory of audio file)
+
+options:
+  -h, --help   show this help message and exit
+```
 
 ## Development
 [Activate the Python virtual environment](https://python-poetry.org/docs/basic-usage/#activating-the-virtual-environment) with
@@ -48,6 +63,20 @@ TODO
 ```bash
 poetry shell
 ```
+
+## LEFT TO(BE)DO(NE)
+
+### MUST HAVE
+- Split any audiofile is chunks which the OPENAI API can handle (it would seem the max. size for Speech to text is currently 25 Mb)
+- Adjust the app to properly handle this chunkink and change the handling of the transcript and summary text files
+
+### SHOULD HAVE
+- Extract sound file from MP4 video file
+- Option to remove summary
+
+### Prompt engineering (COULD HAVE)
+
+The summary should have certain guarantees related with the key-points and perhaps some meta-data: key participants, tone of conversation etc. 
 
 ## Contributing
 

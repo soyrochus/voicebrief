@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a managable report.
+Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a manageable report.
 @copyright: Copyright © 2024 Iwan van der Kleijn
 @license: MIT
 """
 
 # from moviepy.editor import AudioFileClip
 from os import PathLike
+import os
 import pathlib
 from typing import Tuple
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 from pathlib import Path
 
 from voicebrief.data import Transcript
 
-client = OpenAI()
-from pathlib import Path
-
+try:
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+except OpenAIError as e:
+    print(e)
+    exit(1) 
 
 def speech_to_text(audio_path):
 
