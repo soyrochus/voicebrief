@@ -13,19 +13,19 @@ import pathlib
 from typing import Tuple
 from openai import OpenAI, OpenAIError
 from pathlib import Path
+from dotenv import load_dotenv
 
 from voicebrief.data import Transcript
 
 try:
+    #set the key from file "openai_key.txt" in the same directory as this file or set the environment variable OPENAI_API_KEY
+    load_dotenv("openai_api_key.env")
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 except OpenAIError as e:
     print(e)
     exit(1) 
 
 def speech_to_text(audio_path):
-
-    #with open(audio_path, 'rb') as audio_file:
-    #   audio_data = audio_file.read()
 
     response = client.audio.transcriptions.create(
         model="whisper-1", 
@@ -50,17 +50,14 @@ def transcribe_audio(audio_path:Path, destination_dir_path = None)-> Transcript:
         destination_dir_path = audio_path.parent
     
     destination_path = Path(destination_dir_path) / ("transcription_" + audio_path.name)
-   
-    # Step 1: Extract audio from MP4
-    #extract_audio_from_mp4(mp4_path, audio_path)
 
-    # Step 2: Convert audio to text using OpenAI's speech-to-text
+    # Step 1: Convert audio to text using OpenAI's speech-to-text
     audio_path = Path(audio_path)
     text = speech_to_text(audio_path)
     transcription_path = destination_path.with_suffix(".txt")
     transcription_path.write_text(text)
     
-    # Step 3: Summarize the text using OpenAI's GPT-4
+    # Step 2: Summarize the text using OpenAI's GPT-4
     summary = summarize_text(text)
     summary_path = destination_path.with_suffix(".summary.txt")
     summary_path.write_text(summary)

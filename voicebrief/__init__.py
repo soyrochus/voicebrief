@@ -5,5 +5,3 @@ Voicebrief - Converts video / audio conversations to text and subsequently provi
 @copyright: Copyright © 2024 Iwan van der Kleijn
 @license: MIT
 """
-
-

@@ -167,4 +167,6 @@ dev.env
 sound/
 transcriptions/
 test-data/
+openai_api_key.env
+.env
 
