@@ -45,6 +45,8 @@ options:
 
 ```
 
+When dealing with audio files larger than 20Mb, the audio file will be "split" into different files, stored in the sub-directoty "chunks" of the _destination_ path. For each audio file a transcript text will be saved (stored with the prefix "transcript"). All transcripts will be concatedanted and optimized (summarized) in one single file, saved with the prefix "optimized". 
+
 ## Development
 [Activate the Python virtual environment](https://python-poetry.org/docs/basic-usage/#activating-the-virtual-environment) with
 
@@ -53,13 +55,6 @@ poetry shell
 ```
 
 ## LEFT TO(BE)DO(NE)
-
-### MUST HAVE
-- Split any audiofile is chunks which the OPENAI API can handle (it would seem the max. size for Speech to text is currently 25 Mb)
-- Adjust the app to properly handle this chunkink and change the handling of the transcript and summary text files
-
-### SHOULD HAVE
-- Option to remove summary
 
 ### Prompt engineering (COULD HAVE)
 
