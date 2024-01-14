@@ -8,12 +8,11 @@ Voicebrief - Converts video / audio conversations to text and subsequently provi
 """
 import argparse
 import os
+from voicebrief.audio import partition_sound_file
 from voicebrief.data import Transcript
 from pathlib import Path
 from voicebrief.video import video_to_audio
-from voicebrief.gptapi import transcribe_audio
-
-#https://realpython.com/playing-and-recording-sound-python/
+from voicebrief.gptapi import optimize_transcriptions, transcribe_audio
 
 def main():
     try:
@@ -21,6 +20,7 @@ def main():
         parser.add_argument('path', type=str, help='Path to the audio file')
         parser.add_argument('destination', type=str, nargs='?', default=None, help='Optional destination directory (default: directory of "path" parameter)')
         parser.add_argument('-v', '--video', action='store_true', help='Consider "path" to be a video and extract the audio')
+       
         args = parser.parse_args()
       
         path = Path(args.path)
@@ -32,36 +32,23 @@ def main():
             print(f"Audio extracted from {path} to {audio_path}") 
         else:   
             audio_path = Path(args.path)
+       
+        destination_path = Path(args.destination) if args.destination is not None else None
+        audio_chunks = partition_sound_file(audio_path)
+        transcripts = []
+        for audio_chunk in audio_chunks:
+            transcript = transcribe_audio(audio_chunk, destination_path)
+            transcripts.append(transcript)
+                  
+        print(f"""All transcripts saved to: {transcripts[0].text_path.parent}""")
         
-        transcript = transcribe_audio(audio_path, Path(args.destination) if args.destination is not None else None)
-        print(f"""Transcription saved to {transcript.text_path}
-Summary saved to {transcript.summary_path}
-Summary:
-{transcript.summary}
-""")
+        optimized_text = optimize_transcriptions(transcripts, destination_path)
+        print(f"Optimized transcript written to: {optimized_text.text_path}")
+        
     except Exception as e:
         print(e)
         exit(1)
- 
-# def test():
-#     from moviepy.editor import VideoFileClip   # type: ignore
 
-#     video_path = 'test-data/guia design software.mp4'
-#     audio_path = Path(video_path).with_suffix(".wav")
-#     video_clip = VideoFileClip(video_path)
-#     audio_clip = video_clip.audio
-#     audio_clip.write_audiofile(audio_path)
-    
-#     from pydub import AudioSegment # type: ignore
-
-#     # Load your audio file
-#     audio = AudioSegment.from_file(audio_path)
-
-#     # Export as MP3
-#     mp3_path = Path(audio_path).with_suffix(".mp3")
-#     audio.export(mp3_path, format="mp3", bitrate="128k")
-
-    
   
 if __name__ == '__main__':
     

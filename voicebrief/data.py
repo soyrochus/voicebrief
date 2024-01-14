@@ -13,7 +13,9 @@ from pathlib import Path
 @dataclass  
 class Transcript:
     text: str
-    summary: str
     text_path: Path
-    summary_path: Path
     
+    @classmethod
+    def to_file(cls, text: str, path: Path) -> 'Transcript':
+        path.write_text(text)
+        return Transcript(text, path)   

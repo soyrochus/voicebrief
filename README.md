@@ -69,11 +69,11 @@ The summary should have certain guarantees related with the key-points and perha
 
 ### Why FFmpeg?
 
-Our program utilizes the `moviepy` library for extensive video editing operations. `moviepy` itself relies on `FFmpeg`, a powerful multimedia framework capable of handling a vast array of video and audio formats. This dependency is crucial as `FFmpeg` performs the encoding and decoding of media, allowing our program to manipulate video and audio data effectively.
+'Voicebrief' utilizes the `moviepy` library for extensive video editing operations. `moviepy` itself relies on `FFmpeg`, a powerful multimedia framework capable of handling a vast array of video and audio formats. This dependency is crucial as `FFmpeg` performs the encoding and decoding of media, allowing 'voicebrief' to manipulate video and audio data effectively.
 
 ### Verifying FFmpeg Installation
 
-Before using our program, ensure that `FFmpeg` is installed and accessible from your system's command line interface (CLI). Here's how you can verify the installation of `FFmpeg` on different operating systems:
+Before using 'voicebrief', ensure that `FFmpeg` is installed and accessible from your system's command line interface (CLI). Here's how you can verify the installation of `FFmpeg` on different operating systems:
 
 #### Windows
 
@@ -119,7 +119,7 @@ If `FFmpeg` is not installed, follow the instructions below for your operating s
 2. Install `FFmpeg` using Homebrew: `brew install ffmpeg`.
 3. Verify the installation using the steps provided in the verification section.
 
-Ensure that `FFmpeg` is correctly installed and configured before proceeding with the usage of our program.
+Ensure that `FFmpeg` is correctly installed and configured before proceeding with the usage of 'voicebrief'.
 
 
 ## Contributing
