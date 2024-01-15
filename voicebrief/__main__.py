@@ -16,7 +16,7 @@ from voicebrief.gptapi import optimize_transcriptions, transcribe_audio
 
 def main():
     try:
-        parser = argparse.ArgumentParser(description='Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a managable report.')
+        parser = argparse.ArgumentParser(prog="voicebrief", description='Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a managable report.')
         parser.add_argument('path', type=str, help='Path to the audio file')
         parser.add_argument('destination', type=str, nargs='?', default=None, help='Optional destination directory (default: directory of "path" parameter)')
         parser.add_argument('-v', '--video', action='store_true', help='Consider "path" to be a video and extract the audio')

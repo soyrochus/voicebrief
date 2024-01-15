@@ -8,7 +8,7 @@ Converts video / audio conversations to text and subsequently provides a summary
 
 ## Installation
 
-Clone the repository. Use the dependency and package manager [Poetry](https://python-poetry.org/) to install all the dependencies of Nelumbo.
+Clone the repository. Use the dependency and package manager [Poetry](https://python-poetry.org/) to install all the dependencies of Voicebrief.
 
 ```bash
 poetry install
@@ -31,7 +31,7 @@ Usage of the tool:
 
 ```bash
 ❯ voicebrief -h
-usage: __main__.py [-h] [-v] path [destination]
+usage: voicebrief [-h] [-v] path [destination]
 
 Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a managable report.
 
