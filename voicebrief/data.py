@@ -10,12 +10,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-@dataclass  
+@dataclass
 class Transcript:
     text: str
     text_path: Path
-    
+
     @classmethod
-    def to_file(cls, text: str, path: Path) -> 'Transcript':
+    def to_file(cls, text: str, path: Path) -> "Transcript":
         path.write_text(text)
-        return Transcript(text, path)   
+        return Transcript(text, path)

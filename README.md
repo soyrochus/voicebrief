@@ -25,6 +25,44 @@ The key is loaded into the execution context of the application when run from th
 
 Alternatively, if the file is not present, then 'voicebrief' will look for the environment variable "OPENAI_API_KEY".
 
+
+## Tests, checks etc
+
+Voicebrief uses the following tools to test and verify the code: 
+
+- [pytest](pytest.org/): my favourite Pythjon testing tool
+- [mypy](https://mypy-lang.org/): Optional statical type checking for Python
+- [flake8](https://flake8.pycqa.org/): light weight linting tool/style enforcer (PEP8)
+- [black](https://github.com/psf/black): Python code formatter
+
+You can run each tool with:
+
+```bash
+❯ poetry run tool-name [path]
+```
+
+for example:
+
+```bash
+❯ poetry run mypy voicebrief
+```
+
+or run all tools automatically with:
+
+```bash
+❯ poetry run check-all
+```
+In this case, the 'check-all' command stops running the commands if one fails.
+
+Note that the 'flake8' tool obtains its settings from the '.flake8' config file, not pyproject.toml.
+
+The 'check-all' command is implemented in the dev_env/runchecks.py script. It is run through the associated config section in pyproject.toml.
+
+```bash
+[tool.poetry.scripts]
+check-all = "devenv.run_checks:run_checks"
+```
+
 ## Usage
 
 Usage of the tool:

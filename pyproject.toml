@@ -14,9 +14,14 @@ pydub = "^0.25.1"
 python-dotenv = "^1.0.0"
 tiktoken = "^0.5.2"
 
+[tool.poetry.scripts]
+check-all = "devenv.run_checks:run_checks"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"
+flake8 = "^7.0.0"
+black = "^24.1.1"
+pytest = "^8.0.0"
 
 [build-system]
 requires = ["poetry-core"]
