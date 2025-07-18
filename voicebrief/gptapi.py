@@ -18,9 +18,9 @@ import os
 from voicebrief.data import Transcript
 
 try:
-    # set the key from file "openai_key.txt" in the same directory as this file or set
+    # set the key from file ".env" in the same directory as this file or set
     # the environment variable OPENAI_API_KEY
-    load_dotenv("openai_api_key.env")
+    load_dotenv()
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 except OpenAIError as e:
     print(e)

@@ -5,18 +5,20 @@ Converts video / audio conversations to text and subsequently provides a summary
 
 ![Voicebrief converts video / audio conversations to text ](images/voicebrief_small.png)
 
+Note: this project was miograted from using Poetry to [uv](https://github.com/astral-sh/uv) with [poetry2uv](https://github.com/soyrochus/poetry2uv)
 
 ## Installation
 
-Clone the repository. Use the dependency and package manager [Poetry](https://python-poetry.org/) to install all the dependencies of Voicebrief.
+
+Clone the repository. Use the fast Python package manager [uv](https://github.com/astral-sh/uv) to install all the dependencies of Voicebrief.
 
 ```bash
-poetry install
+uv sync
 ```
 
 ## Configuration for usage with OpenAI
 
-Create a text file _"openai_api_key.env"_ in the root of the project. This will contain the "OPENAI_API_KEY" environment variable used by the application to obtain the token associated to a valid OpenAI account when calling the API.
+Create a text file _".env"_ in the root of the project. This will contain the "OPENAI_API_KEY" environment variable used by the application to obtain the token associated to a valid OpenAI account when calling the API. 
 
 ```bash
 OPENAI_API_KEY=sk-A_seCR_et_key_GENERATED_foryou_by_OPENAI
@@ -28,50 +30,52 @@ Alternatively, if the file is not present, then 'voicebrief' will look for the e
 
 ## Tests, checks etc
 
-Voicebrief uses the following tools to test and verify the code: 
 
-- [pytest](pytest.org/): my favourite Pythjon testing tool
-- [mypy](https://mypy-lang.org/): Optional statical type checking for Python
-- [flake8](https://flake8.pycqa.org/): light weight linting tool/style enforcer (PEP8)
+Voicebrief uses the following tools to test and verify the code:
+
+- [pytest](pytest.org/): my favourite Python testing tool
+- [mypy](https://mypy-lang.org/): Optional static type checking for Python
+- [flake8](https://flake8.pycqa.org/): lightweight linting tool/style enforcer (PEP8)
 - [black](https://github.com/psf/black): Python code formatter
 
 You can run each tool with:
 
 ```bash
-❯ poetry run tool-name [path]
+uv run tool-name [path]
 ```
 
 for example:
 
 ```bash
-❯ poetry run mypy voicebrief
+uv run mypy voicebrief
 ```
 
 or run all tools automatically with:
 
 ```bash
-❯ poetry run check-all
+uv run check-all
 ```
 In this case, the 'check-all' command stops running the commands if one fails.
 
+
 Note that the 'flake8' tool obtains its settings from the '.flake8' config file, not pyproject.toml.
 
-The 'check-all' command is implemented in the dev_env/runchecks.py script. It is run through the associated config section in pyproject.toml.
+The 'check-all' command is implemented in the dev_env/runchecks.py script. You can run it directly with:
 
 ```bash
-[tool.poetry.scripts]
-check-all = "devenv.run_checks:run_checks"
+uv run python devenv/run_checks.py
 ```
+
 
 ## Usage
 
 Usage of the tool:
 
 ```bash
-❯ voicebrief -h
+voicebrief -h
 usage: voicebrief [-h] [-v] path [destination]
 
-Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a managable report.
+Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a manageable report.
 
 positional arguments:
   path         Path to the audio file
@@ -85,11 +89,13 @@ options:
 
 When dealing with audio files larger than 20Mb, the audio file will be "split" into different files, stored in the sub-directoty "chunks" of the _destination_ path. For each audio file a transcript text will be saved (stored with the prefix "transcript"). All transcripts will be concatedanted and optimized (summarized) in one single file, saved with the prefix "optimized". 
 
+
 ## Development
-[Activate the Python virtual environment](https://python-poetry.org/docs/basic-usage/#activating-the-virtual-environment) with
+[Activate the Python virtual environment](https://github.com/astral-sh/uv#usage) with
 
 ```bash
-poetry shell
+uv venv
+source .venv/bin/activate
 ```
 
 ## LEFT TO(BE)DO(NE)
