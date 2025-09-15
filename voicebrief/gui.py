@@ -87,10 +87,12 @@ def launch_gui() -> None:
             # Source selector
             self._source_entry = Gtk.Entry(placeholder_text="Select an audio or video file...")
             self._source_entry.set_editable(False)
+            self._source_entry.set_hexpand(True)
             source_button = Gtk.Button(label="Browse...")
             source_button.connect("clicked", self._choose_source)
 
             source_box = Gtk.Box(spacing=6)
+            source_box.set_hexpand(True)
             source_box.append(self._source_entry)
             source_box.append(source_button)
             main_box.append(source_box)
@@ -98,10 +100,12 @@ def launch_gui() -> None:
             # Destination selector
             self._destination_entry = Gtk.Entry(placeholder_text="Optional destination directory...")
             self._destination_entry.set_editable(False)
+            self._destination_entry.set_hexpand(True)
             dest_button = Gtk.Button(label="Choose...")
             dest_button.connect("clicked", self._choose_destination)
 
             dest_box = Gtk.Box(spacing=6)
+            dest_box.set_hexpand(True)
             dest_box.append(self._destination_entry)
             dest_box.append(dest_button)
             main_box.append(dest_box)
@@ -111,7 +115,10 @@ def launch_gui() -> None:
 
             self._force_video_switch = Gtk.Switch()
             self._force_video_switch.set_valign(Gtk.Align.CENTER)
+            self._force_video_switch.set_halign(Gtk.Align.START)
+            self._force_video_switch.set_hexpand(False)
             force_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+            force_box.set_halign(Gtk.Align.START)
             force_box.append(Gtk.Label(label="Force video extraction", xalign=0))
             force_box.append(self._force_video_switch)
             options_box.append(force_box)
@@ -119,7 +126,10 @@ def launch_gui() -> None:
             self._auto_detect_switch = Gtk.Switch()
             self._auto_detect_switch.set_valign(Gtk.Align.CENTER)
             self._auto_detect_switch.set_active(True)
+            self._auto_detect_switch.set_halign(Gtk.Align.START)
+            self._auto_detect_switch.set_hexpand(False)
             auto_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+            auto_box.set_halign(Gtk.Align.START)
             auto_box.append(Gtk.Label(label="Auto-detect video by extension", xalign=0))
             auto_box.append(self._auto_detect_switch)
             options_box.append(auto_box)
@@ -143,7 +153,11 @@ def launch_gui() -> None:
 
             # Output log view
             log_frame = Gtk.Frame(label="Activity log")
+            log_frame.set_vexpand(True)
+            log_frame.set_hexpand(True)
             scrolled = Gtk.ScrolledWindow()
+            scrolled.set_vexpand(True)
+            scrolled.set_hexpand(True)
             self._log_buffer = Gtk.TextBuffer()
             log_view = Gtk.TextView(buffer=self._log_buffer)
             log_view.set_editable(False)
@@ -248,6 +262,7 @@ def launch_gui() -> None:
                         f"Finished. Optimized transcript stored at: {result.optimized_transcript.text_path}\n"
                     )
                     GLib.idle_add(self._append_status, details)
+                    GLib.idle_add(self._show_message, "Done")
                 finally:  # pragma: no cover - UI thread
                     GLib.idle_add(self._run_button.set_sensitive, True)
 
@@ -261,6 +276,17 @@ def launch_gui() -> None:
                 transient_for=self,
                 modal=True,
                 message_type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                text=message,
+            )
+            dialog.connect("response", lambda d, *_: d.destroy())
+            dialog.present()
+
+        def _show_message(self, message: str) -> None:
+            dialog = Gtk.MessageDialog(
+                transient_for=self,
+                modal=True,
+                message_type=Gtk.MessageType.INFO,
                 buttons=Gtk.ButtonsType.OK,
                 text=message,
             )

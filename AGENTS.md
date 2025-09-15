@@ -1,12 +1,11 @@
-THe voicebrief module has a principal CLI inteface to start the extraction audio files, 
-peform the transcript process etc.
 
-The CLI should have a dedicated -g / --gui parameter (exclusive, no other paramerters allowed) which shows a GTK interace offering a GUI form allowing the visual setting of all of the possible paramers so that the user can use all aspects of the app visually through the GUI. 
+The current GUI is as depicted in [the screenshot as captured in specs/current_form.png ](specs/current_form.png)
 
-Keep the GUI simple but complying with modern UI patterns.
+It should be adjusted. The changes should reflect as depicted in [the image inn specs/new_form.png ](specs/new_form.png)
 
+These changes entail:
 
-Target platforms: Linux (Gnome), MacOSX . Ignore WIndows for the moment.
-
-Keep the CLI / module decoupled from the GUI. 
+1) the two file selection text boxes should be significantly wider
+2) the GtK switch button at "Force Video extraction" and "Autodectec by video extension" should not be filling the colomn. They should have the format as displayed in specs/new_form.png
+3) The text box under the button "Start Processing" should expand to the button of the form
 
