@@ -78,21 +78,27 @@ Usage of the tool:
 
 ```bash
 voicebrief -h
-usage: voicebrief [-h] [-v] path [destination]
+usage: voicebrief [-h] [-v] [-V] [--log-level {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [-g]
+                  [path] [destination]
 
 Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a manageable report.
 
 positional arguments:
-  path         Path to the audio file
+  path         Path to the media file
   destination  Optional destination directory (default: directory of "path" parameter)
 
 options:
-  -h, --help   show this help message and exit
-  -v, --video  Consider "path" to be a video and extract the audio
+  -h, --help            show this help message and exit
+  -v, --video           Consider "path" to be a video and extract the audio
+  -V, --verbose         Enable verbose debug logging (same as --log-level DEBUG)
+  --log-level LEVEL     Set log level. Env fallback: VOICEBRIEF_LOG_LEVEL.
+  -g, --gui             Launch the GTK interface (requires the optional `gui` extra)
 
 ```
 
 When dealing with audio files larger than 20Mb, the audio file will be "split" into different files, stored in the sub-directoty "chunks" of the _destination_ path. For each audio file a transcript text will be saved (stored with the prefix "transcript"). All transcripts will be concatedanted and optimized (summarized) in one single file, saved with the prefix "optimized". 
+
+To use the GUI, install the optional dependencies with `uv sync --extra gui` (Linux GNOME and macOS are supported). The GTK window provides file pickers and toggles for all CLI parameters.
 
 ### Logging
 
