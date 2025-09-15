@@ -16,6 +16,11 @@ Clone the repository. Use the fast Python package manager [uv](https://github.co
 uv sync
 ```
 
+### macOS notes
+
+- Install FFmpeg with Homebrew: `brew install ffmpeg` (required by moviepy/pydub)
+- On Python 3.13, the stdlib `audioop` was removed. Voicebrief declares the `audioop-lts` backport automatically for 3.13, so a normal `uv sync` installs it; no extra steps needed.
+
 ## Configuration for usage with OpenAI
 
 Create a text file _".env"_ in the root of the project. This will contain the "OPENAI_API_KEY" environment variable used by the application to obtain the token associated to a valid OpenAI account when calling the API. 
@@ -88,6 +93,15 @@ options:
 ```
 
 When dealing with audio files larger than 20Mb, the audio file will be "split" into different files, stored in the sub-directoty "chunks" of the _destination_ path. For each audio file a transcript text will be saved (stored with the prefix "transcript"). All transcripts will be concatedanted and optimized (summarized) in one single file, saved with the prefix "optimized". 
+
+### Logging
+
+- Set a log level via flag:
+  - `voicebrief --log-level DEBUG <path>`
+  - or shorthand: `voicebrief -V <path>`
+- Or via environment variable:
+  - `VOICEBRIEF_LOG_LEVEL=DEBUG voicebrief <path>`
+- Logs include steps for video->audio extraction, ffmpeg chunking, transcription calls, and summary writing.
 
 
 ## Development

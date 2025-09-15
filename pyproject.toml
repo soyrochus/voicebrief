@@ -12,7 +12,15 @@ description = "Converts video / audio conversations to text and subsequently pro
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11,<4.0"
-dependencies = ["openai>=1.7.2,<2.0", "moviepy>=1.0.3,<2.0", "pydub>=0.25.1,<1.0", "python-dotenv>=1.0.0,<2.0", "tiktoken>=0.5.2,<1.0"]
+dependencies = [
+  "openai>=1.7.2,<2.0",
+  "moviepy>=1.0.3,<2.0",
+  "pydub>=0.25.1,<1.0",
+  "python-dotenv>=1.0.0,<2.0",
+  "tiktoken>=0.5.2,<1.0",
+  # Python 3.13 removed stdlib 'audioop'. pydub can use this LTS backport.
+  "audioop-lts; python_version >= '3.13'",
+]
 
 [[project.authors]]
 name = "Iwan van der Kleijn"

@@ -16,27 +16,61 @@ import tiktoken
 import os
 
 from voicebrief.data import Transcript
+import logging
 
-try:
-    # set the key from file ".env" in the same directory as this file or set
-    # the environment variable OPENAI_API_KEY
+
+def _get_client() -> OpenAI:
+    """Create an OpenAI client on demand.
+
+    Avoids importing credentials during module import so `--help` works cleanly.
+    """
+    # Load from .env if present
     load_dotenv()
-    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-except OpenAIError as e:
-    print(e)
-    exit(1)
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "OPENAI_API_KEY not set. Set it in environment or .env file."
+        )
+    try:
+        logging.getLogger("voicebrief.gptapi").debug("Initializing OpenAI client")
+        return OpenAI(api_key=api_key)
+    except OpenAIError as e:
+        raise RuntimeError(f"Failed to initialize OpenAI client: {e}")
 
 
 def speech_to_text(audio_path):
+    """Transcribe an audio file using OpenAI.
 
-    response = client.audio.transcriptions.create(
-        model="whisper-1", file=Path(audio_path)
-    )
+    Uses a binary file handle (not Path) to avoid request parsing errors.
+    Tries Whisper first, then falls back to GPT-4o Mini Transcribe.
+    """
+    client = _get_client()
+    audio_path = Path(audio_path)
+    if not audio_path.exists() or audio_path.stat().st_size == 0:
+        raise FileNotFoundError(f"Audio file not found or empty: {audio_path}")
+
+    log = logging.getLogger("voicebrief.gptapi")
+    size = audio_path.stat().st_size
+    log.debug("Preparing transcription upload: %s (size=%d bytes)", audio_path, size)
+    with audio_path.open("rb") as f:
+        try:
+            response = client.audio.transcriptions.create(
+                model="whisper-1", file=f
+            )
+            log.debug("Transcribed with model=whisper-1")
+        except Exception as e:
+            # Retry with newer model if Whisper is unavailable/retired or on server error
+            log.warning("Primary transcription failed (%s). Falling back to gpt-4o-mini-transcribe.", type(e).__name__)
+            f.seek(0)
+            response = client.audio.transcriptions.create(
+                model="gpt-4o-mini-transcribe", file=f
+            )
+            log.debug("Transcribed with model=gpt-4o-mini-transcribe (fallback)")
     return response.text
 
 
 def summarize_text(text):
-
+    client = _get_client()
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -72,6 +106,7 @@ def optimize_transcriptions(
     transcripts: List[Transcript], destination_path: Path | None = None
 ) -> Transcript:
     """Add the text of all transcript and then calculate the total token size of the text using the tiktoken library"""
+    client = _get_client()
     # To get the tokeniser corresponding to a specific model in the OpenAI API:
     enc = tiktoken.encoding_for_model("gpt-4")
     text = ""

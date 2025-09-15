@@ -9,15 +9,24 @@ Voicebrief - Converts video / audio conversations to text and subsequently provi
 from pathlib import Path
 from typing import List
 import subprocess
+import logging
 
 
 def partition_sound_file(audio_path: Path, max_chunk_size_mb: int = 20) -> List[Path]:
+    log = logging.getLogger("voicebrief.audio")
     # Define the chunk size in bytes
     max_chunk_size_bytes = max_chunk_size_mb * 1024 * 1024
 
     # if size audio_path is snaller than max_chunk_size_bytes, return audio_path
     # as chunking it would be unnecessary
-    if audio_path.stat().st_size < max_chunk_size_bytes:
+    size = audio_path.stat().st_size
+    if size < max_chunk_size_bytes:
+        log.debug(
+            "Skipping chunking: size=%dB < max=%dB (%s)",
+            size,
+            max_chunk_size_bytes,
+            audio_path,
+        )
         return [audio_path]
 
     # The output directory for chunks
@@ -44,6 +53,7 @@ def partition_sound_file(audio_path: Path, max_chunk_size_mb: int = 20) -> List[
         str(output_dir / f"{audio_path.stem}_%03d{audio_path.suffix}"),
     ]
 
+    log.debug("Running ffmpeg: %s", " ".join(base_command))
     # Execute the command
     result = subprocess.run(
         base_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -51,9 +61,12 @@ def partition_sound_file(audio_path: Path, max_chunk_size_mb: int = 20) -> List[
 
     # Check for errors
     if result.returncode != 0:
-        raise Exception(f"Error splitting file: {result.stderr.decode('utf-8')}")
+        err = result.stderr.decode("utf-8", errors="replace")
+        log.error("ffmpeg failed (code %s): %s", result.returncode, err)
+        raise Exception(f"Error splitting file: {err}")
 
     # List the created files
     paths = list(output_dir.glob(f"{audio_path.stem}_*{audio_path.suffix}"))
+    log.debug("Created %d chunk(s) in %s", len(paths), output_dir)
 
     return paths
