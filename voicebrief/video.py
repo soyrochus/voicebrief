@@ -16,7 +16,14 @@ def video_to_audio(video_path: Path, audio_path: Path | None = None) -> Path:
 
     # Lazy imports so that simply importing the package (e.g., --help)
     # does not require multimedia deps on all platforms
-    from moviepy.editor import VideoFileClip  # type: ignore
+    try:
+        from moviepy.editor import VideoFileClip  # type: ignore
+    except ModuleNotFoundError as e:
+        raise ModuleNotFoundError(
+            "Missing dependency 'moviepy'. Install project dependencies (e.g., 'uv sync'), "
+            "and ensure FFmpeg is installed and on PATH.\n"
+            "macOS: brew install ffmpeg"
+        ) from e
 
     try:
         from pydub import AudioSegment  # type: ignore
@@ -31,6 +38,10 @@ def video_to_audio(video_path: Path, audio_path: Path | None = None) -> Path:
     log.debug("Loading video: %s", video_path)
     video_clip = VideoFileClip(str(video_path))
     audio_clip = video_clip.audio
+    if audio_clip is None:
+        raise RuntimeError(
+            f"No audio track detected in video: {video_path}. Try providing an input with audio."
+        )
     log.debug("Writing extracted WAV to: %s", audio_path)
     audio_clip.write_audiofile(str(audio_path))
 
