@@ -16,10 +16,7 @@ Clone the repository. Use the fast Python package manager [uv](https://github.co
 uv sync
 ```
 
-### macOS notes
-
-- Install FFmpeg with Homebrew: `brew install ffmpeg` (required by moviepy/pydub)
-- On Python 3.13, the stdlib `audioop` was removed. Voicebrief declares the `audioop-lts` backport automatically for 3.13, so a normal `uv sync` installs it; no extra steps needed.
+**Note:** Before running `uv sync`, install platform-specific dependencies. See the [System Dependencies](#system-dependencies) section below for details.
 
 ## Configuration for usage with OpenAI
 
@@ -124,7 +121,7 @@ source .venv/bin/activate
 
 The summary should have certain guarantees related with the key-points and perhaps some meta-data: key participants, tone of conversation etc. 
 
-## FFmpeg Dependency
+## System Dependencies
 
 ### Why FFmpeg?
 
@@ -175,8 +172,15 @@ If `FFmpeg` is not installed, follow the instructions below for your operating s
 #### macOS
 
 1. Install Homebrew, if it's not already installed, with: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`.
-2. Install `FFmpeg` using Homebrew: `brew install ffmpeg`.
-3. Verify the installation using the steps provided in the verification section.
+2. Install required system dependencies:
+   ```bash
+   brew install pkg-config cairo ffmpeg
+   ```
+   - `pkg-config` and `cairo` are required for building pycairo (GTK dependency)
+   - `ffmpeg` is required by moviepy/pydub
+3. Verify the FFmpeg installation using the steps provided in the verification section.
+
+**Note:** On Python 3.13+, the stdlib `audioop` was removed. Voicebrief declares the `audioop-lts` backport automatically for 3.13, so a normal `uv sync` installs it; no extra steps needed.
 
 Ensure that `FFmpeg` is correctly installed and configured before proceeding with the usage of 'voicebrief'.
 
