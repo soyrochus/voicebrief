@@ -65,8 +65,8 @@ def partition_sound_file(audio_path: Path, max_chunk_size_mb: int = 20) -> List[
         log.error("ffmpeg failed (code %s): %s", result.returncode, err)
         raise Exception(f"Error splitting file: {err}")
 
-    # List the created files
-    paths = list(output_dir.glob(f"{audio_path.stem}_*{audio_path.suffix}"))
+    # List the created files and sort them to ensure correct order
+    paths = sorted(output_dir.glob(f"{audio_path.stem}_*{audio_path.suffix}"))
     log.debug("Created %d chunk(s) in %s", len(paths), output_dir)
 
     return paths

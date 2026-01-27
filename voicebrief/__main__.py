@@ -35,6 +35,18 @@ to text and subsequently provides a summary into a managable report."""
             help='Consider "path" to be a video and extract the audio',
         )
         parser.add_argument(
+            "-m",
+            "--markdown",
+            action="store_true",
+            help="Generate a full human-readable markdown transcript with highest fidelity",
+        )
+        parser.add_argument(
+            "-o",
+            "--optimized",
+            action="store_true",
+            help="Generate optimized transcript (processed and structured version)",
+        )
+        parser.add_argument(
             "-V",
             "--verbose",
             action="store_true",
@@ -61,6 +73,8 @@ to text and subsequently provides a summary into a managable report."""
                     args.path,
                     args.destination,
                     args.video,
+                    args.markdown,
+                    args.optimized,
                     args.verbose,
                     args.log_level,
                 )
@@ -86,11 +100,16 @@ to text and subsequently provides a summary into a managable report."""
             destination=Path(args.destination) if args.destination else None,
             force_video=args.video,
             auto_detect_video=True,
+            generate_markdown=args.markdown,
+            generate_optimized=args.optimized,
             logger=log,
         )
 
         log.info("Processing complete for %s", result.source_path)
-        log.info("Optimized transcript available at %s", result.optimized_transcript.text_path)
+        if result.optimized_transcript:
+            log.info("Optimized transcript available at %s", result.optimized_transcript.text_path)
+        if result.markdown_transcript:
+            log.info("Markdown transcript available at %s", result.markdown_transcript.text_path)
 
     except Exception as e:
         if os.environ.get("VOICEBRIEF_LOG_LEVEL", "").upper() == "DEBUG":

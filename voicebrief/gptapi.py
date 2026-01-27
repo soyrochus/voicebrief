@@ -38,6 +38,33 @@ def _get_client() -> OpenAI:
         raise RuntimeError(f"Failed to initialize OpenAI client: {e}")
 
 
+def _get_model() -> str:
+    """Get the OpenAI model to use from environment variable.
+    
+    Reads from OPENAI_MODEL environment variable with fallback to gpt-4o.
+    """
+    load_dotenv()
+    model = os.environ.get("OPENAI_MODEL", "gpt-4o")
+    return model
+
+
+def _get_encoding(model: str):
+    """Get the tiktoken encoding for a model with fallback.
+    
+    If the model is not recognized by tiktoken, falls back to cl100k_base
+    which is used by GPT-4, GPT-3.5-turbo, and newer models.
+    """
+    log = logging.getLogger("voicebrief.gptapi")
+    try:
+        return tiktoken.encoding_for_model(model)
+    except KeyError:
+        log.warning(
+            "Model '%s' not recognized by tiktoken. Falling back to cl100k_base encoding "
+            "(used by GPT-4 and newer models).", model
+        )
+        return tiktoken.get_encoding("cl100k_base")
+
+
 def speech_to_text(audio_path):
     """Transcribe an audio file using OpenAI.
 
@@ -71,8 +98,9 @@ def speech_to_text(audio_path):
 
 def summarize_text(text):
     client = _get_client()
+    model = _get_model()
     response = client.chat.completions.create(
-        model="gpt-4",
+        model=model,
         messages=[
             {
                 "role": "system",
@@ -102,13 +130,107 @@ def transcribe_audio(audio_path: Path, destination_dir_path=None) -> Transcript:
     return transcript
 
 
+def generate_markdown_transcript(
+    transcripts: List[Transcript], destination_path: Path | None = None
+) -> Transcript:
+    """Generate a high-fidelity human-readable markdown transcript.
+    
+    Processes the transcript in chunks if necessary to ensure the best possible
+    formatting and readability while preserving all content with maximum fidelity.
+    """
+    client = _get_client()
+    model = _get_model()
+    log = logging.getLogger("voicebrief.gptapi")
+    enc = _get_encoding(model)
+    
+    text = ""
+    total_tokens = 0
+    responses = []
+    
+    for transcript in transcripts:
+        tokens = enc.encode(transcript.text)
+        if total_tokens + len(tokens) > 4000:
+            # Process accumulated text
+            log.debug("Processing markdown chunk (tokens=%d)", total_tokens)
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """You are a professional transcription formatter. Convert the provided 
+transcript into a well-formatted, human-readable markdown document with the highest possible fidelity 
+to the original content. 
+
+Guidelines:
+- Preserve ALL content - do not summarize or omit anything
+- Format as proper markdown with appropriate headings, lists, and emphasis
+- Organize content into logical sections with clear headings
+- Use proper markdown syntax for better readability
+- Correct obvious transcription errors while maintaining meaning
+- Add appropriate paragraph breaks for readability
+- Ensure smooth reading flow while staying faithful to the source""",
+                    },
+                    {"role": "user", "content": text},
+                ],
+            )
+            responses.append(response.choices[0].message.content)  # type: ignore
+            text = transcript.text
+            total_tokens = len(tokens)
+        else:
+            text += transcript.text + " "
+            total_tokens += len(tokens)
+
+    # Process any remaining text
+    if text:
+        log.debug("Processing final markdown chunk (tokens=%d)", total_tokens)
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are a professional transcription formatter. Convert the provided 
+transcript into a well-formatted, human-readable markdown document with the highest possible fidelity 
+to the original content. 
+
+Guidelines:
+- Preserve ALL content - do not summarize or omit anything
+- Format as proper markdown with appropriate headings, lists, and emphasis
+- Organize content into logical sections with clear headings
+- Use proper markdown syntax for better readability
+- Correct obvious transcription errors while maintaining meaning
+- Add appropriate paragraph breaks for readability
+- Ensure smooth reading flow while staying faithful to the source""",
+                },
+                {"role": "user", "content": text},
+            ],
+        )
+        responses.append(response.choices[0].message.content)  # type: ignore
+
+    text = "\n\n---\n\n".join(responses)  # type: ignore
+    
+    transcript_ = transcripts[0]
+    if destination_path is None:
+        destination_path = transcript_.text_path.parent / (
+            "full_md_" + transcript_.text_path.stem + ".md"
+        )
+    else:
+        destination_path = Path(destination_path) / (
+            "full_md_" + transcript_.text_path.stem + ".md"
+        )
+
+    markdown_transcript = Transcript.to_file(text, destination_path)
+    log.info("Markdown transcript written to: %s", markdown_transcript.text_path)
+    return markdown_transcript
+
+
 def optimize_transcriptions(
     transcripts: List[Transcript], destination_path: Path | None = None
 ) -> Transcript:
     """Add the text of all transcript and then calculate the total token size of the text using the tiktoken library"""
     client = _get_client()
+    model = _get_model()
     # To get the tokeniser corresponding to a specific model in the OpenAI API:
-    enc = tiktoken.encoding_for_model("gpt-4")
+    enc = _get_encoding(model)
     text = ""
     total_tokens = 0
     responses = []
@@ -116,7 +238,7 @@ def optimize_transcriptions(
         tokens = enc.encode(transcript.text)
         if total_tokens + len(tokens) > 4000:
             response = client.chat.completions.create(
-                model="gpt-4",
+                model=model,
                 messages=[
                     {
                         "role": "system",
@@ -137,7 +259,7 @@ clarity throughout the text. Paragraphs should be delimted with an empty line.""
 
     if text:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model=model,
             messages=[
                 {
                     "role": "system",

@@ -21,7 +21,8 @@ class VoicebriefResult:
     source_path: Path
     audio_path: Path
     transcripts: List["Transcript"]
-    optimized_transcript: "Transcript"
+    optimized_transcript: Optional["Transcript"]
+    markdown_transcript: Optional["Transcript"]
     extracted_audio: bool
 
 
@@ -30,6 +31,8 @@ def run_voicebrief(
     destination: Path | str | None = None,
     force_video: bool = False,
     auto_detect_video: bool = True,
+    generate_markdown: bool = False,
+    generate_optimized: bool = False,
     logger: Optional[logging.Logger] = None,
 ) -> VoicebriefResult:
     """Run the Voicebrief pipeline for a media file.
@@ -45,6 +48,11 @@ def run_voicebrief(
     auto_detect_video:
         When ``True`` and ``force_video`` is ``False``, rely on file extension
         detection to decide if audio needs to be extracted from the video first.
+    generate_markdown:
+        When ``True``, generate a full human-readable markdown transcript with
+        highest fidelity.
+    generate_optimized:
+        When ``True``, generate an optimized (processed and structured) transcript.
     logger:
         Optional logger to record progress. When ``None`` the module logger is
         used.
@@ -79,7 +87,7 @@ def run_voicebrief(
     audio_chunks = partition_sound_file(audio_path)
     log.info("Processing %d audio chunk(s)", len(audio_chunks))
 
-    from voicebrief.gptapi import optimize_transcriptions, transcribe_audio
+    from voicebrief.gptapi import transcribe_audio
 
     transcripts: List["Transcript"] = []
     for chunk in audio_chunks:
@@ -91,13 +99,25 @@ def run_voicebrief(
         raise RuntimeError("No transcripts generated. Check the input media file.")
 
     log.info("All transcripts saved to: %s", transcripts[0].text_path.parent)
-    optimized = optimize_transcriptions(transcripts, dest_path)
-    log.info("Optimized transcript written to: %s", optimized.text_path)
+    
+    optimized_transcript: Optional["Transcript"] = None
+    markdown_transcript: Optional["Transcript"] = None
+    
+    if generate_optimized:
+        from voicebrief.gptapi import optimize_transcriptions
+        optimized_transcript = optimize_transcriptions(transcripts, dest_path)
+        log.info("Optimized transcript written to: %s", optimized_transcript.text_path)
+    
+    if generate_markdown:
+        from voicebrief.gptapi import generate_markdown_transcript
+        markdown_transcript = generate_markdown_transcript(transcripts, dest_path)
+        log.info("Markdown transcript written to: %s", markdown_transcript.text_path)
 
     return VoicebriefResult(
         source_path=src_path,
         audio_path=audio_path,
         transcripts=transcripts,
-        optimized_transcript=optimized,
+        optimized_transcript=optimized_transcript,
+        markdown_transcript=markdown_transcript,
         extracted_audio=needs_extraction,
     )

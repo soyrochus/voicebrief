@@ -24,10 +24,13 @@ Create a text file _".env"_ in the root of the project. This will contain the "O
 
 ```bash
 OPENAI_API_KEY=sk-A_seCR_et_key_GENERATED_foryou_by_OPENAI
+OPENAI_MODEL=gpt-4o  # Optional: defaults to gpt-4o if not specified
 ```
 The key is loaded into the execution context of the application when run from the command line or run in the debugger.
 
 Alternatively, if the file is not present, then 'voicebrief' will look for the environment variable "OPENAI_API_KEY".
+
+You can also specify a different OpenAI model by setting the `OPENAI_MODEL` environment variable (e.g., "gpt-4o", "gpt-4-turbo", etc.).
 
 
 ## Tests, checks etc
@@ -75,7 +78,7 @@ Usage of the tool:
 
 ```bash
 voicebrief -h
-usage: voicebrief [-h] [-v] [-V] [--log-level {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [-g]
+usage: voicebrief [-h] [-v] [-m] [-o] [-V] [--log-level {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [-g]
                   [path] [destination]
 
 Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a manageable report.
@@ -87,13 +90,43 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   -v, --video           Consider "path" to be a video and extract the audio
+  -m, --markdown        Generate a full human-readable markdown transcript with highest fidelity
+  -o, --optimized       Generate optimized transcript (processed and structured version)
   -V, --verbose         Enable verbose debug logging (same as --log-level DEBUG)
   --log-level LEVEL     Set log level. Env fallback: VOICEBRIEF_LOG_LEVEL.
   -g, --gui             Launch the GTK interface (requires the optional `gui` extra)
 
 ```
 
-When dealing with audio files larger than 20Mb, the audio file will be "split" into different files, stored in the sub-directoty "chunks" of the _destination_ path. For each audio file a transcript text will be saved (stored with the prefix "transcript"). All transcripts will be concatedanted and optimized (summarized) in one single file, saved with the prefix "optimized". 
+When dealing with audio files larger than 20Mb, the audio file will be "split" into different files, stored in the sub-directoty "chunks" of the _destination_ path. For each audio file a transcript text will be saved (stored with the prefix "transcript"). 
+
+### Output Options
+
+Voicebrief provides flexible output options:
+
+- **Raw transcripts** (always generated): Original transcriptions from OpenAI Whisper, saved with prefix "transcription_"
+- **Optimized transcript** (`-o, --optimized`): AI-processed and structured version with improved organization and paragraph formatting, saved with prefix "optimized_"
+- **Markdown transcript** (`-m, --markdown`): Full human-readable markdown document with highest fidelity to original content, formatted with proper headings and structure, saved as "full_md_*.md"
+
+You can use `-m` and `-o` together to generate both versions, or neither to get only raw transcripts.
+
+**Examples:**
+```bash
+# Generate only raw transcripts
+voicebrief audio.mp3
+
+# Generate raw transcripts + optimized version
+voicebrief audio.mp3 -o
+
+# Generate raw transcripts + markdown version
+voicebrief audio.mp3 -m
+
+# Generate all versions (raw + optimized + markdown)
+voicebrief audio.mp3 -o -m
+
+# Process video with markdown output
+voicebrief video.mp4 -v -m
+```
 
 To use the GUI, install the optional dependencies with `uv sync --extra gui` (Linux GNOME and macOS are supported). The GTK window provides file pickers and toggles for all CLI parameters.
 

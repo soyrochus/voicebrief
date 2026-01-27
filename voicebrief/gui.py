@@ -253,14 +253,20 @@ def launch_gui() -> None:
                         destination=self._config.destination,
                         force_video=self._config.force_video,
                         auto_detect_video=self._config.auto_detect,
+                        generate_markdown=False,
+                        generate_optimized=True,
                     )
                 except Exception as exc:  # pragma: no cover - UI thread
                     logging.getLogger("voicebrief.gui").exception("Processing failed")
                     GLib.idle_add(self._show_error, str(exc))
                 else:  # pragma: no cover - UI thread
-                    details = (
-                        f"Finished. Optimized transcript stored at: {result.optimized_transcript.text_path}\n"
-                    )
+                    output_files = []
+                    if result.optimized_transcript:
+                        output_files.append(f"Optimized transcript: {result.optimized_transcript.text_path}")
+                    if result.markdown_transcript:
+                        output_files.append(f"Markdown transcript: {result.markdown_transcript.text_path}")
+                    
+                    details = "Finished. " + "; ".join(output_files) + "\\n" if output_files else "Finished processing.\\n"
                     GLib.idle_add(self._append_status, details)
                     GLib.idle_add(self._show_message, "Done")
                 finally:  # pragma: no cover - UI thread
