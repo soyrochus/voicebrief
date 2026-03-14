@@ -161,6 +161,11 @@ cython_debug/
 .vscode/
 .idea/
 
+
+# Local env files
+.env
+
+# Local data files
 out/
 keys/
 dev.env
@@ -168,5 +173,4 @@ sound/
 transcriptions/
 test-data/
 openai_api_key.env
-.env
-
+workbench/

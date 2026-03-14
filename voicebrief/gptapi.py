@@ -19,6 +19,18 @@ from voicebrief.data import Transcript
 import logging
 
 
+def _compose_system_prompt(base_prompt: str, custom_instructions: str | None = None) -> str:
+    """Append optional user instructions to the built-in system prompt."""
+    instructions = (custom_instructions or "").strip()
+    if not instructions:
+        return base_prompt
+    return (
+        f"{base_prompt.rstrip()}\n\n"
+        "Additional user instructions:\n"
+        f"{instructions}"
+    )
+
+
 def _get_client() -> OpenAI:
     """Create an OpenAI client on demand.
 
@@ -96,7 +108,7 @@ def speech_to_text(audio_path):
     return response.text
 
 
-def summarize_text(text):
+def summarize_text(text, custom_instructions: str | None = None):
     client = _get_client()
     model = _get_model()
     response = client.chat.completions.create(
@@ -104,7 +116,11 @@ def summarize_text(text):
         messages=[
             {
                 "role": "system",
-                "content": "You must create a summary of the provided text. Be concise and to the point.",
+                "content": _compose_system_prompt(
+                    "You must create a summary of the provided text. "
+                    "Be concise and to the point.",
+                    custom_instructions,
+                ),
             },
             {"role": "user", "content": text},
         ],
@@ -131,7 +147,9 @@ def transcribe_audio(audio_path: Path, destination_dir_path=None) -> Transcript:
 
 
 def generate_markdown_transcript(
-    transcripts: List[Transcript], destination_path: Path | None = None
+    transcripts: List[Transcript],
+    destination_path: Path | None = None,
+    custom_instructions: str | None = None,
 ) -> Transcript:
     """Generate a high-fidelity human-readable markdown transcript.
     
@@ -146,6 +164,18 @@ def generate_markdown_transcript(
     text = ""
     total_tokens = 0
     responses = []
+    base_prompt = """You are a professional transcription formatter. Convert the provided
+transcript into a well-formatted, human-readable markdown document with the highest possible fidelity
+to the original content.
+
+Guidelines:
+- Preserve ALL content - do not summarize or omit anything
+- Format as proper markdown with appropriate headings, lists, and emphasis
+- Organize content into logical sections with clear headings
+- Use proper markdown syntax for better readability
+- Correct obvious transcription errors while maintaining meaning
+- Add appropriate paragraph breaks for readability
+- Ensure smooth reading flow while staying faithful to the source"""
     
     for transcript in transcripts:
         tokens = enc.encode(transcript.text)
@@ -157,18 +187,9 @@ def generate_markdown_transcript(
                 messages=[
                     {
                         "role": "system",
-                        "content": """You are a professional transcription formatter. Convert the provided 
-transcript into a well-formatted, human-readable markdown document with the highest possible fidelity 
-to the original content. 
-
-Guidelines:
-- Preserve ALL content - do not summarize or omit anything
-- Format as proper markdown with appropriate headings, lists, and emphasis
-- Organize content into logical sections with clear headings
-- Use proper markdown syntax for better readability
-- Correct obvious transcription errors while maintaining meaning
-- Add appropriate paragraph breaks for readability
-- Ensure smooth reading flow while staying faithful to the source""",
+                        "content": _compose_system_prompt(
+                            base_prompt, custom_instructions
+                        ),
                     },
                     {"role": "user", "content": text},
                 ],
@@ -188,18 +209,7 @@ Guidelines:
             messages=[
                 {
                     "role": "system",
-                    "content": """You are a professional transcription formatter. Convert the provided 
-transcript into a well-formatted, human-readable markdown document with the highest possible fidelity 
-to the original content. 
-
-Guidelines:
-- Preserve ALL content - do not summarize or omit anything
-- Format as proper markdown with appropriate headings, lists, and emphasis
-- Organize content into logical sections with clear headings
-- Use proper markdown syntax for better readability
-- Correct obvious transcription errors while maintaining meaning
-- Add appropriate paragraph breaks for readability
-- Ensure smooth reading flow while staying faithful to the source""",
+                    "content": _compose_system_prompt(base_prompt, custom_instructions),
                 },
                 {"role": "user", "content": text},
             ],
@@ -224,7 +234,9 @@ Guidelines:
 
 
 def optimize_transcriptions(
-    transcripts: List[Transcript], destination_path: Path | None = None
+    transcripts: List[Transcript],
+    destination_path: Path | None = None,
+    custom_instructions: str | None = None,
 ) -> Transcript:
     """Add the text of all transcript and then calculate the total token size of the text using the tiktoken library"""
     client = _get_client()
@@ -234,6 +246,10 @@ def optimize_transcriptions(
     text = ""
     total_tokens = 0
     responses = []
+    base_prompt = """Please verify, optionally correct and organize the following text into
+a coherent and well-structured format with clear, distinct paragraphs. Each paragraph should have a logical
+flow and connection to the next, maintaining consistency and clarity throughout the text. Paragraphs should
+be delimted with an empty line."""
     for transcript in transcripts:
         tokens = enc.encode(transcript.text)
         if total_tokens + len(tokens) > 4000:
@@ -242,10 +258,9 @@ def optimize_transcriptions(
                 messages=[
                     {
                         "role": "system",
-                        "content": """Please verify, optionally correct and organize 
-the following text into a coherent and well-structured format with clear, distinct paragraphs. 
-Each paragraph should have a logical flow and connection to the next, maintaining consistency and 
-clarity throughout the text. Paragraphs should be delimted with an empty line.""",  # noqa: E501,
+                        "content": _compose_system_prompt(
+                            base_prompt, custom_instructions
+                        ),
                     },
                     {"role": "user", "content": text},
                 ],
@@ -263,10 +278,7 @@ clarity throughout the text. Paragraphs should be delimted with an empty line.""
             messages=[
                 {
                     "role": "system",
-                    "content": """Please verify, optionally correct and organize the following text into 
-a coherent and well-structured format with clear, distinct paragraphs. Each paragraph should have a logical 
-flow and connection to the next, maintaining consistency and clarity throughout the text. Paragraphs should 
-be delimted with an empty line.""",  # noqa: E501,
+                    "content": _compose_system_prompt(base_prompt, custom_instructions),
                 },
                 {"role": "user", "content": text},
             ],

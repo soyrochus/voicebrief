@@ -33,6 +33,7 @@ def run_voicebrief(
     auto_detect_video: bool = True,
     generate_markdown: bool = False,
     generate_optimized: bool = False,
+    custom_instructions: str | None = None,
     logger: Optional[logging.Logger] = None,
 ) -> VoicebriefResult:
     """Run the Voicebrief pipeline for a media file.
@@ -53,6 +54,9 @@ def run_voicebrief(
         highest fidelity.
     generate_optimized:
         When ``True``, generate an optimized (processed and structured) transcript.
+    custom_instructions:
+        Optional extra instructions appended to the built-in LLM system prompt
+        for text post-processing tasks.
     logger:
         Optional logger to record progress. When ``None`` the module logger is
         used.
@@ -105,12 +109,20 @@ def run_voicebrief(
     
     if generate_optimized:
         from voicebrief.gptapi import optimize_transcriptions
-        optimized_transcript = optimize_transcriptions(transcripts, dest_path)
+        optimized_transcript = optimize_transcriptions(
+            transcripts,
+            dest_path,
+            custom_instructions=custom_instructions,
+        )
         log.info("Optimized transcript written to: %s", optimized_transcript.text_path)
     
     if generate_markdown:
         from voicebrief.gptapi import generate_markdown_transcript
-        markdown_transcript = generate_markdown_transcript(transcripts, dest_path)
+        markdown_transcript = generate_markdown_transcript(
+            transcripts,
+            dest_path,
+            custom_instructions=custom_instructions,
+        )
         log.info("Markdown transcript written to: %s", markdown_transcript.text_path)
 
     return VoicebriefResult(

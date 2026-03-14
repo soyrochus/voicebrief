@@ -14,6 +14,24 @@ from voicebrief.app import run_voicebrief
 from voicebrief.logging_utils import configure_logging
 
 
+def _load_custom_instructions(args: argparse.Namespace) -> str | None:
+    if args.custom_instructions and args.prompt_file:
+        raise ValueError("Use either --custom-instructions or --prompt-file, not both.")
+
+    if args.custom_instructions:
+        return args.custom_instructions.strip() or None
+
+    if args.prompt_file:
+        prompt_path = Path(args.prompt_file).expanduser()
+        if not prompt_path.exists():
+            raise FileNotFoundError(f"Prompt file does not exist: {prompt_path}")
+        if not prompt_path.is_file():
+            raise ValueError(f"Prompt path is not a file: {prompt_path}")
+        return prompt_path.read_text(encoding="utf-8").strip() or None
+
+    return None
+
+
 def main(argv: list[str] | None = None) -> None:
     try:
         parser = argparse.ArgumentParser(
@@ -53,6 +71,18 @@ to text and subsequently provides a summary into a managable report."""
             help="Enable verbose debug logging (same as --log-level DEBUG)",
         )
         parser.add_argument(
+            "--custom-instructions",
+            type=str,
+            default=None,
+            help="Append additional instructions to the built-in LLM prompt.",
+        )
+        parser.add_argument(
+            "--prompt-file",
+            type=str,
+            default=None,
+            help="Read additional LLM instructions from a UTF-8 text file.",
+        )
+        parser.add_argument(
             "--log-level",
             choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"],
             default=None,
@@ -76,6 +106,8 @@ to text and subsequently provides a summary into a managable report."""
                     args.markdown,
                     args.optimized,
                     args.verbose,
+                    args.custom_instructions,
+                    args.prompt_file,
                     args.log_level,
                 )
             ):
@@ -94,6 +126,7 @@ to text and subsequently provides a summary into a managable report."""
         configure_logging(level)
         log = logging.getLogger("voicebrief.cli")
         log.debug("CLI started with args: %s", vars(args))
+        custom_instructions = _load_custom_instructions(args)
 
         result = run_voicebrief(
             Path(args.path),
@@ -102,6 +135,7 @@ to text and subsequently provides a summary into a managable report."""
             auto_detect_video=True,
             generate_markdown=args.markdown,
             generate_optimized=args.optimized,
+            custom_instructions=custom_instructions,
             logger=log,
         )
 

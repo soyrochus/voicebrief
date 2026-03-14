@@ -17,6 +17,7 @@ class _GuiConfig:
     destination: Optional[Path] = None
     force_video: bool = False
     auto_detect: bool = True
+    custom_instructions: str = ""
     log_level: str = "INFO"
 
 
@@ -145,6 +146,19 @@ def launch_gui() -> None:
 
             main_box.append(options_box)
 
+            instructions_frame = Gtk.Frame(label="Custom LLM instructions")
+            instructions_frame.set_hexpand(True)
+            instructions_scroller = Gtk.ScrolledWindow()
+            instructions_scroller.set_hexpand(True)
+            instructions_scroller.set_min_content_height(110)
+            self._instructions_buffer = Gtk.TextBuffer()
+            instructions_view = Gtk.TextView(buffer=self._instructions_buffer)
+            instructions_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+            instructions_view.set_vexpand(False)
+            instructions_scroller.set_child(instructions_view)
+            instructions_frame.set_child(instructions_scroller)
+            main_box.append(instructions_frame)
+
             # Run button
             self._run_button = Gtk.Button(label="Start Processing")
             self._run_button.add_css_class("suggested-action")
@@ -235,6 +249,13 @@ def launch_gui() -> None:
 
             self._config.force_video = self._force_video_switch.get_active()
             self._config.auto_detect = self._auto_detect_switch.get_active()
+            instruction_start = self._instructions_buffer.get_start_iter()
+            instruction_end = self._instructions_buffer.get_end_iter()
+            self._config.custom_instructions = self._instructions_buffer.get_text(
+                instruction_start,
+                instruction_end,
+                False,
+            ).strip()
             selected_item = self._log_combo.get_selected_item()
             log_level = (
                 selected_item.get_string() if selected_item is not None else "INFO"
@@ -255,6 +276,7 @@ def launch_gui() -> None:
                         auto_detect_video=self._config.auto_detect,
                         generate_markdown=False,
                         generate_optimized=True,
+                        custom_instructions=self._config.custom_instructions or None,
                     )
                 except Exception as exc:  # pragma: no cover - UI thread
                     logging.getLogger("voicebrief.gui").exception("Processing failed")

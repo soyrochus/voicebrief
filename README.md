@@ -78,7 +78,8 @@ Usage of the tool:
 
 ```bash
 voicebrief -h
-usage: voicebrief [-h] [-v] [-m] [-o] [-V] [--log-level {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [-g]
+usage: voicebrief [-h] [-v] [-m] [-o] [-V] [--custom-instructions CUSTOM_INSTRUCTIONS]
+                  [--prompt-file PROMPT_FILE] [--log-level {CRITICAL,ERROR,WARNING,INFO,DEBUG}] [-g]
                   [path] [destination]
 
 Voicebrief - Converts video / audio conversations to text and subsequently provides a summary into a manageable report.
@@ -93,6 +94,10 @@ options:
   -m, --markdown        Generate a full human-readable markdown transcript with highest fidelity
   -o, --optimized       Generate optimized transcript (processed and structured version)
   -V, --verbose         Enable verbose debug logging (same as --log-level DEBUG)
+  --custom-instructions CUSTOM_INSTRUCTIONS
+                        Append additional instructions to the built-in LLM prompt.
+  --prompt-file PROMPT_FILE
+                        Read additional LLM instructions from a UTF-8 text file.
   --log-level LEVEL     Set log level. Env fallback: VOICEBRIEF_LOG_LEVEL.
   -g, --gui             Launch the GTK interface (requires the optional `gui` extra)
 
@@ -129,6 +134,20 @@ voicebrief video.mp4 -v -m
 ```
 
 To use the GUI, install the optional dependencies with `uv sync --extra gui` (Linux GNOME and macOS are supported). The GTK window provides file pickers and toggles for all CLI parameters.
+
+### Custom LLM Instructions
+
+You can append your own instructions to the built-in post-processing prompt used for optimized and markdown transcript generation.
+
+```bash
+# Inline extra instructions
+voicebrief audio.mp3 -o --custom-instructions "Preserve speaker names and add a short action-items section."
+
+# Load extra instructions from a file
+voicebrief audio.mp3 -m --prompt-file my_prompt.txt
+```
+
+The GUI provides the same capability through the `Custom LLM instructions` text box.
 
 ### Logging
 
@@ -218,16 +237,22 @@ If `FFmpeg` is not installed, follow the instructions below for your operating s
 Ensure that `FFmpeg` is correctly installed and configured before proceeding with the usage of 'voicebrief'.
 
 
-## Contributing
+## Contributing & Principles of Participation
 
 Pull requests are welcome. For major changes, please open an issue first
 to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
 
+Everyone is invited and welcome to contribute: open issues, propose pull requests, share ideas, or help improve documentation.  
+Participation is open to all, regardless of background or viewpoint.  
+
+This project follows the [FOSS Pluralism Manifesto](./FOSS_PLURALISM_MANIFESTO.md),  
+which affirms respect for people, freedom to critique ideas, and space for diverse perspectives.  
+
 ## Copyright and license
 
-Copyright © 2024 Iwan van der Kleijn
+Copyright © 2024,2026 Iwan van der Kleijn
 
 Licensed under the MIT License 
 [MIT](https://choosealicense.com/licenses/mit/)
