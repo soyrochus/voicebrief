@@ -174,3 +174,5 @@ transcriptions/
 test-data/
 openai_api_key.env
 workbench/
+docs/
+example.env

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import logging
+import os
+import sys
 import threading
 from dataclasses import dataclass
 from pathlib import Path
@@ -21,6 +23,50 @@ class _GuiConfig:
     log_level: str = "INFO"
 
 
+_MACOS_REEXEC_GUARD = "VOICEBRIEF_GTK_LIBPATH_SET"
+
+
+def _ensure_macos_gtk_libraries() -> None:
+    """Make Homebrew's GTK/GLib libraries loadable on macOS.
+
+    The GObject typelibs dlopen their libraries by bare name (for example
+    ``libglib-2.0.0.dylib``). A Python that does not come from Homebrew (uv,
+    pyenv, python.org) does not search Homebrew's lib directory, so that fails.
+    dyld only reads ``DYLD_FALLBACK_LIBRARY_PATH`` at process start, and
+    launchers such as ``uv`` strip ``DYLD_*`` variables, so the variable is set
+    here and the interpreter re-executed once.
+    """
+
+    if sys.platform != "darwin" or os.environ.get(_MACOS_REEXEC_GUARD):
+        return
+
+    import ctypes
+
+    try:
+        ctypes.CDLL("libgobject-2.0.0.dylib")
+        return  # Already resolvable; nothing to do.
+    except OSError:
+        pass
+
+    candidates = [os.environ.get("HOMEBREW_PREFIX"), "/opt/homebrew", "/usr/local"]
+    for prefix in candidates:
+        if not prefix:
+            continue
+        lib_dir = Path(prefix) / "lib"
+        if (lib_dir / "libgobject-2.0.0.dylib").exists():
+            break
+    else:
+        return  # No GTK runtime found; let the import below report it.
+
+    env = dict(os.environ)
+    existing = env.get("DYLD_FALLBACK_LIBRARY_PATH")
+    env["DYLD_FALLBACK_LIBRARY_PATH"] = (
+        f"{lib_dir}:{existing}" if existing else str(lib_dir)
+    )
+    env[_MACOS_REEXEC_GUARD] = "1"
+    os.execve(sys.executable, [sys.executable, *sys.orig_argv[1:]], env)
+
+
 def launch_gui() -> None:
     """Launch the GTK GUI.
 
@@ -29,6 +75,8 @@ def launch_gui() -> None:
     RuntimeError
         If the GTK bindings are not available on the current system.
     """
+
+    _ensure_macos_gtk_libraries()
 
     try:
         import gi
